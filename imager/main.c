@@ -29,7 +29,7 @@ int main() {
 
 	find_dir(".", FIND_ASSETS);
 
-	if (first->next == NULL) {
+	if (first == NULL) {
 		fprintf(stderr, "No one image found. Cancelled\n");
 		return 1;
 	}
