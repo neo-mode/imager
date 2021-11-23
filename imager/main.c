@@ -28,6 +28,12 @@ void create_image(const char *filename);
 int main() {
 
 	find_dir(".", FIND_ASSETS);
+
+	if (first->next == NULL) {
+		fprintf(stderr, "No one image found. Cancelled\n");
+		return 1;
+	}
+
 	printf("import UIKit\n\nenum ImageName: String {\n");
 
 	for (struct name *node = first; node; node = node->next) {
