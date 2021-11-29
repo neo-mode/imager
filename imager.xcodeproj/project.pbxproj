@@ -249,6 +249,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = YQ6FVDC84H;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;

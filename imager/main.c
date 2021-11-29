@@ -61,7 +61,7 @@ void find_dir(const char *dirname, short mode) {
 		if (file->d_type != DT_DIR || file->d_name[0] == '.') continue;
 
 		const char *ext = strrchr(file->d_name, '.');
-		char *path = malloc(strlen(dirname) + strlen(file->d_name) + 2);
+		char path[strlen(dirname) + strlen(file->d_name) + 2];
 		sprintf(path, "%s/%s", dirname, file->d_name);
 
 		if (ext == NULL) find_dir(path, mode);
@@ -77,7 +77,7 @@ void create_image(const char *filename) {
 	size_t len = strlen(filename) - 9;
 	size_t total = len + 1;
 
-	char *ext = malloc(total);
+	char ext[total];
 	memcpy(ext, filename, len);
 	ext[len] = 0;
 
