@@ -29,7 +29,7 @@ int main() {
 
 	find_dir(".", FIND_ASSETS);
 
-	if (first == NULL) {
+	if (!first) {
 		fprintf(stderr, "No one image found. Cancelled\n");
 		return 1;
 	}
@@ -50,7 +50,7 @@ int main() {
 void find_dir(const char *dirname, short mode) {
 
 	DIR *dir = opendir(dirname);
-	if (dir == NULL) {
+	if (!dir) {
 		fprintf(stderr, "Could not open directory: %s\n", dirname);
 		exit(1);
 	}
@@ -64,7 +64,7 @@ void find_dir(const char *dirname, short mode) {
 		char path[strlen(dirname) + strlen(file->d_name) + 2];
 		sprintf(path, "%s/%s", dirname, file->d_name);
 
-		if (ext == NULL) find_dir(path, mode);
+		if (!ext) find_dir(path, mode);
 		else if (strcmp(ext, ".xcassets") == 0) find_dir(path, FIND_IMAGESET);
 		else if (strcmp(ext, ".imageset") == 0) create_image(file->d_name);
 	}
@@ -94,7 +94,7 @@ void create_image(const char *filename) {
 	for (;;) {
 		strcat(key, part);
 		part = strtok(NULL, " _-");
-		if (part == NULL) break;
+		if (!part) break;
 		part[0] &= ~32;
 	}
 
@@ -103,10 +103,10 @@ void create_image(const char *filename) {
 	node->val = value;
 	node->next = NULL;
 
-	if (first == NULL)
-		first = node;
-	else
+	if (first)
 		head->next = node;
+	else
+		first = node;
 
 	head = node;
 }
