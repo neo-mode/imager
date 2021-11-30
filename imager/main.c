@@ -13,14 +13,14 @@
 #define FIND_ASSETS 1
 #define FIND_IMAGESET 2
 
-struct name {
+typedef struct name {
 	const char *key;
 	const char *val;
 	struct name *next;
-};
+} name_t;
 
-struct name *head;
-struct name *first;
+name_t *head;
+name_t *first;
 
 void find_dir(const char *dirname, short mode);
 void create_image(const char *filename);
@@ -36,7 +36,7 @@ int main() {
 
 	printf("import UIKit\n\nenum ImageName: String {\n");
 
-	for (struct name *node = first; node; node = node->next) {
+	for (name_t *node = first; node; node = node->next) {
 
 		if (strcmp(node->key, node->val) == 0)
 			printf("\tcase %s\n", node->key);
@@ -98,7 +98,7 @@ void create_image(const char *filename) {
 		part[0] &= ~32;
 	}
 
-	struct name *node = malloc(sizeof(struct name));
+	name_t *node = malloc(sizeof(name_t));
 	node->key = key;
 	node->val = value;
 	node->next = NULL;
