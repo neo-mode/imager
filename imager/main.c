@@ -36,12 +36,17 @@ int main() {
 
 	printf("import UIKit\n\nenum ImageName: String {\n");
 
-	for (name_t *node = first; node; node = node->next) {
+	name_t *node = first;
+	while (node) {
 
 		if (strcmp(node->key, node->val) == 0)
 			printf("\tcase %s\n", node->key);
 		else
 			printf("\tcase %s = \"%s\"\n", node->key, node->val);
+
+		name_t *prev = node;
+		node = node->next;
+		free((void*)prev->key); free((void*)prev->val); free(prev);
 	}
 
 	printf("}\n\nextension UIImage {\n\tstatic func image(name: ImageName) -> UIImage {\n\t\tguard let image = UIImage(named: name.rawValue) else { assertionFailure(\"Image not found\"); return UIImage() }\n\t\treturn image\n\t}\n}\n");
@@ -56,7 +61,7 @@ void find_dir(const char *dirname, short mode) {
 	}
 
 	struct dirent *file;
-	while ((file = readdir(dir)) != NULL) {
+	while ((file = readdir(dir))) {
 
 		if (file->d_type != DT_DIR || file->d_name[0] == '.') continue;
 
