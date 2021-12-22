@@ -12,10 +12,11 @@
 
 #define FIND_ASSETS 1
 #define FIND_IMAGESET 2
+#define SIZE 100
 
 typedef struct name {
-	const char *key;
-	const char *val;
+	char key[SIZE];
+	char val[SIZE];
 	struct name *next;
 } name_t;
 
@@ -46,7 +47,7 @@ int main() {
 
 		name_t *prev = node;
 		node = node->next;
-		free((void*)prev->key); free((void*)prev->val); free(prev);
+		free(prev);
 	}
 
 	printf("}\n\nextension UIImage {\n\tstatic func image(name: ImageName) -> UIImage {\n\t\tguard let image = UIImage(named: name.rawValue) else { assertionFailure(\"Image not found\"); return UIImage() }\n\t\treturn image\n\t}\n}\n");
@@ -86,12 +87,12 @@ void create_image(const char *filename) {
 	memcpy(ext, filename, len);
 	ext[len] = 0;
 
-	char *value = malloc(total);
+	char key[SIZE];
+	key[0] = 0;
+
+	char value[SIZE];
 	memcpy(value, filename, len);
 	value[len] = 0;
-
-	char *key = malloc(total);
-	key[0] = 0;
 
 	char *part = strtok(ext, " _-");
 	part[0] |= 32;
@@ -104,8 +105,8 @@ void create_image(const char *filename) {
 	}
 
 	name_t *node = malloc(sizeof(name_t));
-	node->key = key;
-	node->val = value;
+	strcpy(node->key, key);
+	strcpy(node->val, value);
 	node->next = NULL;
 
 	if (first)
