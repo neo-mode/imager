@@ -67,12 +67,16 @@ void find_dir(const char *dirname, short mode) {
 		if (file->d_type != DT_DIR || file->d_name[0] == '.') continue;
 
 		const char *ext = strrchr(file->d_name, '.');
+		if (ext && strcmp(ext, ".imageset") == 0) {
+			create_image(file->d_name);
+			continue;
+		}
+
 		char path[strlen(dirname) + strlen(file->d_name) + 2];
 		sprintf(path, "%s/%s", dirname, file->d_name);
 
 		if (!ext) find_dir(path, mode);
 		else if (strcmp(ext, ".xcassets") == 0) find_dir(path, FIND_IMAGESET);
-		else if (strcmp(ext, ".imageset") == 0) create_image(file->d_name);
 	}
 
 	closedir(dir);
