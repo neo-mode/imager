@@ -37,7 +37,7 @@ int main() {
 
 	printf("import UIKit\n\nenum ImageName: String {\n");
 
-	name_t *node = first;
+	name_t *prev, *node = first;
 	while (node) {
 
 		if (strcmp(node->key, node->val) == 0)
@@ -45,7 +45,7 @@ int main() {
 		else
 			printf("\tcase %s = \"%s\"\n", node->key, node->val);
 
-		name_t *prev = node;
+		prev = node;
 		node = node->next;
 		free(prev);
 	}
