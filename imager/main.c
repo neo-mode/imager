@@ -72,11 +72,11 @@ void find_dir(const char *dirname, short mode) {
 			continue;
 		}
 
-		char path[strlen(dirname) + strlen(file->d_name) + 2];
-		sprintf(path, "%s/%s", dirname, file->d_name);
-
-		if (!ext) find_dir(path, mode);
-		else if (strcmp(ext, ".xcassets") == 0) find_dir(path, FIND_IMAGESET);
+		if (!ext || strcmp(ext, ".xcassets") == 0) {
+			char path[strlen(dirname) + strlen(file->d_name) + 2];
+			sprintf(path, "%s/%s", dirname, file->d_name);
+			find_dir(path, ext ? FIND_IMAGESET : mode);
+		}
 	}
 
 	closedir(dir);
