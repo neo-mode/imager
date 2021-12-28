@@ -12,11 +12,10 @@
 
 #define FIND_ASSETS 1
 #define FIND_IMAGESET 2
-#define SIZE 100
 
 typedef struct name {
-	char key[SIZE];
-	char val[SIZE];
+	const char *key;
+	const char *val;
 	struct name *next;
 } name_t;
 
@@ -37,17 +36,11 @@ int main() {
 
 	printf("import UIKit\n\nenum ImageName: String {\n");
 
-	name_t *prev, *node = first;
-	while (node) {
-
+	for (name_t *node = first; node; node = node->next) {
 		if (strcmp(node->key, node->val) == 0)
 			printf("\tcase %s\n", node->key);
 		else
 			printf("\tcase %s = \"%s\"\n", node->key, node->val);
-
-		prev = node;
-		node = node->next;
-		free(prev);
 	}
 
 	printf("}\n\nextension UIImage {\n\tstatic func image(name: ImageName) -> UIImage {\n\t\tguard let image = UIImage(named: name.rawValue) else { assertionFailure(\"Image not found\"); return UIImage() }\n\t\treturn image\n\t}\n}\n");
@@ -73,7 +66,7 @@ void find_dir(const char *dirname, short mode) {
 		}
 
 		if (!ext || strcmp(ext, ".xcassets") == 0) {
-			char path[strlen(dirname) + strlen(file->d_name) + 2];
+			char *path = malloc(strlen(dirname) + strlen(file->d_name) + 2);
 			sprintf(path, "%s/%s", dirname, file->d_name);
 			find_dir(path, ext ? FIND_IMAGESET : mode);
 		}
@@ -87,16 +80,16 @@ void create_image(const char *filename) {
 	size_t len = strlen(filename) - 9;
 	size_t total = len + 1;
 
-	char ext[total];
+	char *ext = malloc(total);
 	memcpy(ext, filename, len);
 	ext[len] = 0;
 
-	char key[SIZE];
+	char *key = malloc(total);
 	key[0] = 0;
 
-	char value[SIZE];
-	memcpy(value, filename, len);
-	value[len] = 0;
+	char *val = malloc(total);
+	memcpy(val, filename, len);
+	val[len] = 0;
 
 	char *part = strtok(ext, " _-");
 	part[0] |= 32;
@@ -109,8 +102,8 @@ void create_image(const char *filename) {
 	}
 
 	name_t *node = malloc(sizeof(name_t));
-	strcpy(node->key, key);
-	strcpy(node->val, value);
+	node->key = key;
+	node->val = val;
 	node->next = NULL;
 
 	if (first)
