@@ -8,12 +8,12 @@
 #include <dirent.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 
 #define FIND_ASSETS 1
 #define FIND_IMAGESET 2
 
 typedef struct name {
+	short has_val;
 	const char *key;
 	const char *val;
 	struct name *next;
@@ -22,12 +22,12 @@ typedef struct name {
 name_t *head;
 name_t *first;
 
-void find_dir(const char *dirname, short mode);
-void create_image(const char *filename);
+void find_dir(const char *dirname, short size, short mode);
+void create_image(const char *filename, short length);
 
 int main() {
 
-	find_dir(".", FIND_ASSETS);
+	find_dir(".", 1, FIND_ASSETS);
 
 	if (!first) {
 		fprintf(stderr, "No one image found. Cancelled\n");
@@ -37,16 +37,17 @@ int main() {
 	printf("import UIKit\n\nenum ImageName: String {\n");
 
 	for (name_t *node = first; node; node = node->next) {
-		if (strcmp(node->key, node->val) == 0)
-			printf("\tcase %s\n", node->key);
-		else
+		if (node->has_val) {
 			printf("\tcase %s = \"%s\"\n", node->key, node->val);
+		} else {
+			printf("\tcase %s\n", node->val);
+		}
 	}
 
 	printf("}\n\nextension UIImage {\n\tstatic func image(name: ImageName) -> UIImage {\n\t\tguard let image = UIImage(named: name.rawValue) else { assertionFailure(\"Image not found\"); return UIImage() }\n\t\treturn image\n\t}\n}\n");
 }
 
-void find_dir(const char *dirname, short mode) {
+void find_dir(const char *dirname, short size, short mode) {
 
 	DIR *dir = opendir(dirname);
 	if (!dir) {
@@ -59,49 +60,58 @@ void find_dir(const char *dirname, short mode) {
 
 		if (file->d_type != DT_DIR || file->d_name[0] == '.') continue;
 
-		const char *ext = strrchr(file->d_name, '.');
-		if (ext && strcmp(ext, ".imageset") == 0) {
-			create_image(file->d_name);
+		short length = 0;
+		const char *ext = NULL;
+
+		for (const char *name = file->d_name; *name; name++) {
+			length++;
+			if (*name == '.') ext = name;
+		}
+
+		if (ext && ext[0] == '.' && ext[1] == 'i' && ext[2] == 'm' && ext[3] == 'a' && ext[4] == 'g' && ext[5] == 'e' && ext[6] == 's' && ext[7] == 'e' && ext[8] == 't' && ext[9] == 0) {
+			create_image(file->d_name, length);
 			continue;
 		}
 
-		if (!ext || strcmp(ext, ".xcassets") == 0) {
-			char *path = malloc(strlen(dirname) + strlen(file->d_name) + 2);
+		if (!ext || (ext[0] == '.' && ext[1] == 'x' && ext[2] == 'c' && ext[3] == 'a' && ext[4] == 's' && ext[5] == 's' && ext[6] == 'e' && ext[7] == 't' && ext[8] == 's' && ext[9] == 0)) {
+			short total = size + length + 1;
+			char path[total + 1];
 			sprintf(path, "%s/%s", dirname, file->d_name);
-			find_dir(path, ext ? FIND_IMAGESET : mode);
+			find_dir(path, total, ext ? FIND_IMAGESET : mode);
 		}
 	}
 
 	closedir(dir);
 }
 
-void create_image(const char *filename) {
+void create_image(const char *filename, short length) {
 
-	size_t len = strlen(filename) - 9;
-	size_t total = len + 1;
+	length -= 9;
 
-	char *ext = malloc(total);
-	memcpy(ext, filename, len);
-	ext[len] = 0;
+	char chr, toggle = -1;
+	short i = 0, j = 0, has = 0;
+	char *key = malloc(length + 1);
+	char *val = malloc(length + 1);
 
-	char *key = malloc(total);
-	key[0] = 0;
+	chr = val[i] = filename[i];
+	has = chr != (key[j] = chr | 32);
 
-	char *val = malloc(total);
-	memcpy(val, filename, len);
-	val[len] = 0;
+	for (i = 1, j = 1; i < length; i++) {
 
-	char *part = strtok(ext, " _-");
-	part[0] |= 32;
+		chr = val[i] = filename[i];
+		if (chr == '-' || chr == '_' || chr == ' ') {
+			has = 1; toggle = -33; continue;
+		}
 
-	for (;;) {
-		strcat(key, part);
-		part = strtok(NULL, " _-");
-		if (!part) break;
-		part[0] &= ~32;
+		key[j++] = chr & toggle;
+		toggle = -1;
 	}
 
+	key[j] = 0;
+	val[i] = 0;
+
 	name_t *node = malloc(sizeof(name_t));
+	node->has_val = has;
 	node->key = key;
 	node->val = val;
 	node->next = NULL;
