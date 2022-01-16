@@ -22,8 +22,8 @@ typedef struct name {
 name_t *head;
 name_t *first;
 
-void find_dir(const char *dirname, short size, short mode);
-void create_image(const char *filename, short length);
+void find_dir(const char*, short, short);
+void create_image(const char*, short);
 
 int main() {
 
@@ -36,13 +36,11 @@ int main() {
 
 	printf("import UIKit\n\nenum ImageName: String {\n");
 
-	for (name_t *node = first; node; node = node->next) {
-		if (node->has_val) {
+	for (name_t *node = first; node; node = node->next)
+		if (node->has_val)
 			printf("\tcase %s = \"%s\"\n", node->key, node->val);
-		} else {
+		else
 			printf("\tcase %s\n", node->val);
-		}
-	}
 
 	printf("}\n\nextension UIImage {\n\tstatic func image(name: ImageName) -> UIImage {\n\t\tguard let image = UIImage(named: name.rawValue) else { assertionFailure(\"Image not found\"); return UIImage() }\n\t\treturn image\n\t}\n}\n");
 }
@@ -55,14 +53,15 @@ void find_dir(const char *dirname, short size, short mode) {
 		exit(1);
 	}
 
+	short length;
+	const char *ext;
 	struct dirent *file;
+
 	while ((file = readdir(dir))) {
 
 		if (file->d_type != DT_DIR || file->d_name[0] == '.') continue;
 
-		short length = 0;
-		const char *ext = NULL;
-
+		length = 0; ext = 0;
 		for (const char *name = file->d_name; *name; name++) {
 			length++;
 			if (*name == '.') ext = name;
@@ -84,19 +83,19 @@ void find_dir(const char *dirname, short size, short mode) {
 	closedir(dir);
 }
 
-void create_image(const char *filename, short length) {
+void create_image(const char *filename, short size) {
 
-	length -= 9;
+	size -= 9;
 
 	char chr, toggle = -1;
 	short i = 0, j = 0, has = 0;
-	char *key = malloc(length + 1);
-	char *val = malloc(length + 1);
+	char *key = malloc(size + 1);
+	char *val = malloc(size + 1);
 
 	chr = val[i] = filename[i];
 	has = chr != (key[j] = chr | 32);
 
-	for (i = 1, j = 1; i < length; i++) {
+	for (i = 1, j = 1; i < size; i++) {
 
 		chr = val[i] = filename[i];
 		if (chr == '-' || chr == '_' || chr == ' ') {
@@ -114,7 +113,7 @@ void create_image(const char *filename, short length) {
 	node->has_val = has;
 	node->key = key;
 	node->val = val;
-	node->next = NULL;
+	node->next = 0;
 
 	if (first)
 		head->next = node;
