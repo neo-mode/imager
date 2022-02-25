@@ -13,7 +13,6 @@
 #define FIND_IMAGESET 2
 
 typedef struct name {
-	short has_val;
 	const char *key;
 	const char *val;
 	struct name *next;
@@ -37,12 +36,12 @@ int main() {
 	printf("import UIKit\n\nenum ImageName: String {\n");
 
 	for (name_t *node = first; node; node = node->next)
-		if (node->has_val)
+		if (node->key)
 			printf("\tcase %s = \"%s\"\n", node->key, node->val);
 		else
 			printf("\tcase %s\n", node->val);
 
-	printf("}\n\nextension UIImage {\n\tstatic func image(name: ImageName) -> UIImage {\n\t\tguard let image = UIImage(named: name.rawValue) else { assertionFailure(\"Image not found\"); return UIImage() }\n\t\treturn image\n\t}\n}\n");
+	printf("}\n\nextension UIImage {\n\tstatic func image(name: ImageName) -> UIImage {\n\t\tif let image = UIImage(named: name.rawValue) { return image }\n\t\tassertionFailure(\"Image not found\")\n\t\treturn UIImage()\n\t}\n}\n");
 }
 
 void find_dir(const char *dirname, short size, short mode) {
@@ -88,18 +87,18 @@ void create_image(const char *filename, short size) {
 	size -= 9;
 
 	char chr, toggle = -1;
-	short i = 0, j = 0, has = 0;
+	short i, j;
 	char *key = malloc(size + 1);
 	char *val = malloc(size + 1);
 
-	chr = val[i] = filename[i];
-	has = chr != (key[j] = chr | 32);
+	chr = val[0] = filename[0];
+	key[0] = chr | 32;
 
 	for (i = 1, j = 1; i < size; i++) {
 
 		chr = val[i] = filename[i];
 		if (chr == '-' || chr == '_' || chr == ' ') {
-			has = 1; toggle = -33; continue;
+			toggle = -33; continue;
 		}
 
 		key[j++] = chr & toggle;
@@ -110,8 +109,7 @@ void create_image(const char *filename, short size) {
 	val[i] = 0;
 
 	name_t *node = malloc(sizeof(name_t));
-	node->has_val = has;
-	node->key = key;
+	node->key = i != j ? key : 0;
 	node->val = val;
 	node->next = 0;
 
