@@ -95,7 +95,7 @@ void create_image(const char *filename, short size) {
 	for (i = 1, j = 1; i < size; i++) {
 
 		chr = node->val[i] = filename[i];
-		if (chr == '-' || chr == '_' || chr == ' ') {
+		if (chr == '-' || chr == '_' || chr == ' ' || chr == '(' || chr == ')') {
 			toggle = -33; continue;
 		}
 
