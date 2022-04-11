@@ -13,8 +13,7 @@
 #define FIND_IMAGESET 2
 
 typedef struct name {
-	const char *key;
-	const char *val;
+	char key[100], val[100];
 	struct name *next;
 } name_t;
 
@@ -36,7 +35,7 @@ int main() {
 	printf("import UIKit\n\nenum ImageName: String {\n");
 
 	for (name_t *node = first; node; node = node->next)
-		if (node->key)
+		if (node->key[0] != 0)
 			printf("\tcase %s = \"%s\"\n", node->key, node->val);
 		else
 			printf("\tcase %s\n", node->val);
@@ -88,29 +87,24 @@ void create_image(const char *filename, short size) {
 
 	char chr, toggle = -1;
 	short i, j;
-	char *key = malloc(size + 1);
-	char *val = malloc(size + 1);
+	name_t *node = malloc(sizeof(name_t));
 
-	chr = val[0] = filename[0];
-	key[0] = chr | 32;
+	chr = node->val[0] = filename[0];
+	node->key[0] = chr | 32;
 
 	for (i = 1, j = 1; i < size; i++) {
 
-		chr = val[i] = filename[i];
+		chr = node->val[i] = filename[i];
 		if (chr == '-' || chr == '_' || chr == ' ') {
 			toggle = -33; continue;
 		}
 
-		key[j++] = chr & toggle;
+		node->key[j++] = chr & toggle;
 		toggle = -1;
 	}
 
-	key[j] = 0;
-	val[i] = 0;
-
-	name_t *node = malloc(sizeof(name_t));
-	node->key = i != j ? key : 0;
-	node->val = val;
+	node->key[i == j ? 0 : j] = 0;
+	node->val[i] = 0;
 	node->next = 0;
 
 	if (first)
