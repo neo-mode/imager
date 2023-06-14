@@ -11,19 +11,20 @@
 
 #define FIND_ASSETS 1
 #define FIND_IMAGESET 2
+#define allowed_spec_chr(chr) (chr == '-' || chr == '.' || chr == '_')
+#define allowed_chr(chr) (allowed_spec_chr(chr) || (chr >= '0' && chr <= '9') || (chr >= 'a' && chr <= 'z') || (chr >= 'A' && chr <= 'Z'))
 
 typedef struct name {
-	char key[100], val[100];
+	char key[64], val[64];
 	struct name *next;
 } name_t;
 
-name_t *head;
-name_t *first;
+name_t *head = 0, *first = 0;
 
 void find_dir(const char*, short, short);
 void create_image(const char*, short);
 
-int main() {
+int main(void) {
 
 	find_dir(".", 1, FIND_ASSETS);
 
@@ -35,12 +36,12 @@ int main() {
 	printf("import UIKit\n\nenum ImageName: String {\n");
 
 	for (name_t *node = first; node; node = node->next)
-		if (node->key[0] != 0)
+		if (node->key[0])
 			printf("\tcase %s = \"%s\"\n", node->key, node->val);
 		else
 			printf("\tcase %s\n", node->val);
 
-	printf("}\n\nextension UIImage {\n\tstatic func image(name: ImageName) -> UIImage {\n\t\tif let image = UIImage(named: name.rawValue) { return image }\n\t\tassertionFailure(\"Image not found\")\n\t\treturn UIImage()\n\t}\n}\n");
+	printf("}\n\nextension UIImage {\n\tstatic func image(name: ImageName) -> UIImage {\n\t\tif let image = UIImage(named: name.rawValue) { return image }\n\t\tassertionFailure(\"Image \\(name.rawValue) not found\")\n\t\treturn UIImage()\n\t}\n}\n");
 }
 
 void find_dir(const char *dirname, short size, short mode) {
@@ -83,21 +84,23 @@ void find_dir(const char *dirname, short size, short mode) {
 
 void create_image(const char *filename, short size) {
 
-	size -= 9;
+	char chr = filename[0];
+	if (!allowed_chr(chr)) { fprintf(stderr, "%s has denied character\n", filename); exit(1); }
 
-	char chr, toggle = -1;
+	char toggle = -1;
 	short i, j;
+
 	name_t *node = malloc(sizeof(name_t));
-
-	chr = node->val[0] = filename[0];
 	node->key[0] = chr | 32;
+	node->val[0] = chr;
 
-	for (i = 1, j = 1; i < size; i++) {
+	for (i = 1, j = 1, size -= 9; i < size; i++) {
 
-		chr = node->val[i] = filename[i];
-		if (chr == '-' || chr == '_' || chr == ' ' || chr == '(' || chr == ')') {
-			toggle = -33; continue;
-		}
+		chr = filename[i];
+		if (!allowed_chr(chr)) { fprintf(stderr, "%s has denied character\n", filename); exit(1); }
+
+		node->val[i] = chr;
+		if (allowed_spec_chr(chr)) { toggle = -33; continue; }
 
 		node->key[j++] = chr & toggle;
 		toggle = -1;
