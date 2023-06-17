@@ -12,7 +12,6 @@
 #define FIND_ASSETS 1
 #define FIND_IMAGESET 2
 #define allowed_spec_chr(chr) (chr == '-' || chr == '.' || chr == '_')
-#define allowed_chr(chr) (allowed_spec_chr(chr) || (chr >= '0' && chr <= '9') || (chr >= 'a' && chr <= 'z') || (chr >= 'A' && chr <= 'Z'))
 
 typedef struct name {
 	char key[64], val[64];
