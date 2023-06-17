@@ -23,6 +23,7 @@ name_t *head = 0, *first = 0;
 
 void find_dir(const char*, short, short);
 void create_image(const char*, short);
+char check_chr(const char*, short);
 
 int main(void) {
 
@@ -84,9 +85,7 @@ void find_dir(const char *dirname, short size, short mode) {
 
 void create_image(const char *filename, short size) {
 
-	char chr = filename[0];
-	if (!allowed_chr(chr)) { fprintf(stderr, "%s has denied character\n", filename); exit(1); }
-
+	char chr = check_chr(filename, 0);
 	char toggle = -1;
 	short i, j;
 
@@ -96,10 +95,7 @@ void create_image(const char *filename, short size) {
 
 	for (i = 1, j = 1, size -= 9; i < size; i++) {
 
-		chr = filename[i];
-		if (!allowed_chr(chr)) { fprintf(stderr, "%s has denied character\n", filename); exit(1); }
-
-		node->val[i] = chr;
+		node->val[i] = chr = check_chr(filename, i);
 		if (allowed_spec_chr(chr)) { toggle = -33; continue; }
 
 		node->key[j++] = chr & toggle;
@@ -116,4 +112,13 @@ void create_image(const char *filename, short size) {
 		first = node;
 
 	head = node;
+}
+
+char check_chr(const char *filename, short pos) {
+
+	char chr = filename[pos];
+	if (allowed_spec_chr(chr) || (chr >= '0' && chr <= '9') || (chr >= 'a' && chr <= 'z') || (chr >= 'A' && chr <= 'Z')) return chr;
+
+	fprintf(stderr, "%s has denied character\n", filename);
+	exit(1);
 }
