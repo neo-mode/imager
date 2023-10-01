@@ -24,7 +24,18 @@ void find_dir(const char*, short, short);
 void create_image(const char*, short);
 char check_chr(const char*, short);
 
-int main(void) {
+int main(int argc, const char **argv) {
+
+	short is_public = 0;
+	const char *arg = 0;
+
+	for (int i = 0; i < argc; i++) {
+		arg = argv[i];
+		if (arg[0] == '-' && arg[1] == 'p' && arg[2] == 0) {
+			is_public = 1;
+			continue;
+		}
+	}
 
 	find_dir(".", 1, FIND_ASSETS);
 
@@ -33,7 +44,7 @@ int main(void) {
 		return 1;
 	}
 
-	printf("import UIKit\n\nenum ImageName: String {\n");
+	printf("import UIKit\n\n%senum ImageName: String {\n", is_public ? "public " : "");
 
 	for (name_t *node = first; node; node = node->next)
 		if (node->key[0])
@@ -41,7 +52,7 @@ int main(void) {
 		else
 			printf("\tcase %s\n", node->val);
 
-	printf("}\n\nextension UIImage {\n\tstatic func image(name: ImageName) -> UIImage {\n\t\tif let image = UIImage(named: name.rawValue) { return image }\n\t\tassertionFailure(\"Image \\(name.rawValue) not found\")\n\t\treturn UIImage()\n\t}\n}\n");
+	printf("}\n\n%sextension UIImage {\n\tstatic func image(name: ImageName) -> UIImage {\n\t\tif let image = UIImage(named: name.rawValue) { return image }\n\t\tassertionFailure(\"Image \\(name.rawValue) not found\")\n\t\treturn UIImage()\n\t}\n}\n", is_public ? "public " : "");
 }
 
 void find_dir(const char *dirname, short size, short mode) {
